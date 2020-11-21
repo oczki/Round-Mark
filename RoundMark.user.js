@@ -23,10 +23,6 @@ const maxPageHeight = 1000000000 // pixels, used for calculations to find anchor
 
 class Css {
   static rules = `
-body {
-  position: relative;
-}
-
 .round-mark {
   display: flex;
   align-items: center;
@@ -84,7 +80,7 @@ body {
 
 class Coordinates {
   // Get click position relative to the whole scrollable document, not just the visible part (viewport).
-  static getClickXY(clickEvent) {
+  static getClickXY(event) {
     const x = window.scrollX + event.clientX;
     const y = window.scrollY + event.clientY;
     return [x, y];
