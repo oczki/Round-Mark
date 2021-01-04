@@ -4,7 +4,7 @@
 // @match       *://*/*
 // @match       -removeme-file:///*/*
 // @grant       none
-// @version     1.0
+// @version     1.1
 // @author      fri
 // @description Alt + double click to place a tiny bookmark. Alt + scroll to jump to it.
 // ==/UserScript==
@@ -129,12 +129,18 @@ class Characters {
   static alphabet = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   static index = 0;
 
+  // Returns the next character from the alphabet.
   static getNext() {
     const character = this.alphabet.charAt(this.index++);
     if (this.index >= this.alphabet.length) {
       this.index = 0;
     }
     return character;
+  }
+
+  // Starts counting the alphabet from its beginning.
+  static reset() {
+    this.index = 0;
   }
 }
 
@@ -153,7 +159,8 @@ class AnchorCreator {
 
     return anchor;
   }
-  
+
+  // Create a span element with a single character.
   static createCharacter(character) {
     let span = document.createElement('span');
     span.classList.add('character');
@@ -231,6 +238,7 @@ class Anchors {
     }
   }
 
+  // Sets a given anchor as current and changes its class.
   static setCurrent(anchor) {
     for (let item of this.items) {
       item.element.classList.remove('active');
@@ -239,24 +247,27 @@ class Anchors {
     this.currentItemId = anchor.id;
   }
 
-  // Removes the given anchor and sets the previous one as current.
+  // Removes the given anchor and, if the removed one was current, sets the previous one as current.
   static remove(id) {
     const anchor = this.items.find(item => item.id === id);
     const index = this.items.indexOf(anchor);
     if (index > -1) {
       this.items.splice(index, 1);
       anchor.element.remove();
-      this.currentItemId = this.getPreviousAnchorId();
+      if (this.currentItemId === id) {
+        this.setCurrent(this.items[this.idToIndex(this.getPreviousAnchorId())]);
+      }
     }
   }
 
-  // Removes all anchors and resets the current one.
+  // Removes all anchors and resets the current one. Starts counting characters from the beginning.
   static removeAll() {
     for (let item of this.items) {
       item.element.remove();
     }
     this.items = [];
     this.currentItemId = -1;
+    Characters.reset();
   }
 }
 
@@ -297,7 +308,8 @@ class Hotkeys {
     this.bindScrollToAnchor();
     this.bindDeleteAllAnchors();
   }
-  
+
+  // Binds LAlt + double click to 'add anchor'.
   static bindAddAnchor() {
     document.addEventListener('dblclick', event => {
       if (event.button === 0 && event.altKey) {
@@ -306,7 +318,8 @@ class Hotkeys {
       }
     });
   }
-  
+
+  // Binds LAlt + scroll wheel to 'show previous' and 'show next', depending on scroll direction.
   static bindScrollToAnchor() {
     document.addEventListener('wheel', event => {
       if (event.altKey) {
@@ -320,7 +333,8 @@ class Hotkeys {
       }
     }, { passive: false });
   }
-  
+
+  // Binds LAlt + double click on an anchor to 'delete anchor'.
   static bindDeleteAnchor(element) {
     element.addEventListener('dblclick', event => {
       if (event.button === 0 && event.altKey) {
@@ -329,7 +343,8 @@ class Hotkeys {
       }
     });
   }
-  
+
+  // Binds LAlt + middle click to 'delete all anchors'.
   static bindDeleteAllAnchors() {
     document.addEventListener('mouseup', event => {
       if (event.button === 1 && event.altKey) {
